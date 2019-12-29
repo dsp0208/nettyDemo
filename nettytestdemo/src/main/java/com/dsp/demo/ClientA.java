@@ -6,6 +6,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,7 +19,7 @@ public class ClientA {
         try{
             Bootstrap client = new Bootstrap();
             client.group(worker);
-            client.channel(NioServerSocketChannel.class).remoteAddress(new InetSocketAddress("localhost",8889)).handler(new ChannelInitializer<SocketChannel>() {
+            client.channel(NioSocketChannel.class).remoteAddress(new InetSocketAddress("localhost",8889)).handler(new ChannelInitializer<SocketChannel>() {
 
                 @Override
                 protected void initChannel(SocketChannel socketChannel) throws Exception {
