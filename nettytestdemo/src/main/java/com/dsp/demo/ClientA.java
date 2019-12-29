@@ -1,23 +1,24 @@
 package com.dsp.demo;
 
-import io.netty.bootstrap.ServerBootstrap;
+import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 
-
-public class Server {
+public class ClientA {
     public static void main(String[] args) throws InterruptedException {
-        NioEventLoopGroup acceptor = new NioEventLoopGroup();
         NioEventLoopGroup worker = new NioEventLoopGroup();
         try{
-            ServerBootstrap server = new ServerBootstrap();
-            server.group(acceptor,worker);
-            server.channel(NioServerSocketChannel.class).localAddress(new InetSocketAddress(8889)).childHandler(new ChannelInitializer<SocketChannel>() {
+            Bootstrap client = new Bootstrap();
+            client.group(worker);
+            client.channel(NioServerSocketChannel.class).remoteAddress(new InetSocketAddress("localhost",8889)).handler(new ChannelInitializer<SocketChannel>() {
 
                 @Override
                 protected void initChannel(SocketChannel socketChannel) throws Exception {
@@ -25,10 +26,18 @@ public class Server {
 
                 }
             });
-            ChannelFuture f = server.bind().sync();
+            ChannelFuture f = client.connect().sync();
             f.channel().closeFuture().sync();
-        }finally {
-            acceptor.shutdownGracefully();
+            while(true){
+                BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+                String line = reader.readLine();
+                if(ServerUtils.getChannelMap().containsKey("0")){
+                    ServerUtils.getChannelMap().get("0").write(line);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
             worker.shutdownGracefully();
         }
     }
@@ -37,7 +46,7 @@ public class Server {
 
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            System.out.println("用户"+ServerUtils.index+"进入群聊");
+            System.out.println("开始群聊！");
             ServerUtils.getChannelMap().put(""+ServerUtils.index,ctx.channel());
         }
 
@@ -46,20 +55,14 @@ public class Server {
             ByteBuf byteBuf = (ByteBuf) msg;
             byte[] bytes = new byte[byteBuf.readableBytes()];
             byteBuf.readBytes(bytes);
-            String message = new String(bytes);
-            System.out.println(message);
-            String[] s = message.split("_");
-            if(s.length>1 && ServerUtils.getChannelMap().containsKey(s[0])){
-                ServerUtils.getChannelMap().get(s[0]).write(s[1]);
-            }else{
-                ServerUtils.getChannelMap().values().stream().forEach(t-> {
-                    t.write(s[1]);
-                });
-            }
-
+            String s = new String(bytes);
+            System.out.println(s);
         }
 
-
+        @Override
+        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+            ctx.writeAndFlush((String)msg);
+        }
     }
 
 
