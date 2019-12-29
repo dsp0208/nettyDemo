@@ -1,5 +1,6 @@
 package com.dsp.demo;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
@@ -18,19 +19,34 @@ public class Server {
             while (iterator.hasNext()){
                 SelectionKey key = iterator.next();
                 if(key.isAcceptable()){
-                    System.out.println("连接建立");
                     SocketChannel socketChannel = serverChannle.accept();
                     socketChannel.configureBlocking(false);
                     socketChannel.register(selector,SelectionKey.OP_READ);
+                    System.out.println("欢迎"+ServerUtils.index+"进入直播间");
+                    ServerUtils.getChannelMap().put(""+ServerUtils.index,socketChannel);
+                    ServerUtils.index++;
                 }
                 if(key.isReadable()){
                     SocketChannel channel = (SocketChannel) key.channel();
                     ByteBuffer allocate = ByteBuffer.allocate(1024);
                     int i = channel.read(allocate);
                     if(i!=-1){
-                        String msg = new String(allocate.array()).trim();
+                        final String msg = new String(allocate.array()).trim();
                         System.out.println(msg);
-                        channel.write(ByteBuffer.wrap(msg.getBytes()));
+                        String[] s = msg.split("_");
+                        if(s.length>1 && ServerUtils.getChannelMap().containsKey(s[0])){
+                            SocketChannel socketChannel = ServerUtils.getChannelMap().get(s[0]);
+                            socketChannel.write(ByteBuffer.wrap(s[1].getBytes()));
+                        }else{
+                            ServerUtils.getChannelMap().values().stream().forEach(t-> {
+                                try {
+                                    t.write(ByteBuffer.wrap(msg.getBytes()));
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            });
+                        }
+
                     }
                 }
                 iterator.remove();

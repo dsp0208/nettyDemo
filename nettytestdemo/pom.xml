@@ -11,5 +11,13 @@
 
     <artifactId>nettytestdemo</artifactId>
 
+    <dependencies>
+        <!-- https://mvnrepository.com/artifact/io.netty/netty-transport -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport</artifactId>
+            <version>4.1.44.Final</version>
+        </dependency>
+    </dependencies>
 
 </project>

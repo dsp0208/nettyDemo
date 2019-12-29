@@ -30,7 +30,6 @@ public class Client1 {
                         @Override
                         public void run() {
                             try{
-                                System.out.println("休眠启动");
                                 if(!channel.isConnected()){
                                     channel.finishConnect();
                                 }
