@@ -14,6 +14,8 @@ import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 
 public class ClientB {
+
+    public static Channel channel = null;
     public static void main(String[] args) throws InterruptedException {
         NioEventLoopGroup worker = new NioEventLoopGroup();
         try{
@@ -23,7 +25,7 @@ public class ClientB {
 
                 @Override
                 protected void initChannel(SocketChannel socketChannel) throws Exception {
-                    socketChannel.pipeline().addLast(new SampleInHandler());
+                    socketChannel.pipeline().addLast(new ClientSampleInHandlerB());
 
                 }
             });
@@ -38,8 +40,8 @@ public class ClientB {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        if(ServerUtils.channelMap.containsKey("1")){
-                            ServerUtils.channelMap.get("1").writeAndFlush(line);
+                        if(channel != null){
+                            channel.writeAndFlush(line);
                         }
                     }
                 }
@@ -48,31 +50,6 @@ public class ClientB {
             f.channel().closeFuture().sync();
         } finally {
             worker.shutdownGracefully();
-        }
-    }
-
-    public static class SampleInHandler extends ChannelDuplexHandler{
-
-        @Override
-        public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            System.out.println("开始群聊！"+1+"进入！");
-            ServerUtils.channelMap.put("1",ctx.channel());
-        }
-
-        @Override
-        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            ByteBuf byteBuf = (ByteBuf) msg;
-            byte[] bytes = new byte[byteBuf.readableBytes()];
-            byteBuf.readBytes(bytes);
-            String s = new String(bytes);
-            System.out.println(s);
-        }
-
-        @Override
-        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-            ByteBuf byteBuf = Unpooled.buffer(1024);
-            byteBuf.writeBytes(((String)msg).getBytes());
-            ctx.writeAndFlush(byteBuf);
         }
     }
 
