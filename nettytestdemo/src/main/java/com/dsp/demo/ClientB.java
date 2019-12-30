@@ -6,7 +6,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.io.BufferedReader;
@@ -14,7 +13,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 
-public class ClientA {
+public class ClientB {
     public static void main(String[] args) throws InterruptedException {
         NioEventLoopGroup worker = new NioEventLoopGroup();
         try{
@@ -39,8 +38,8 @@ public class ClientA {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        if(ServerUtils.channelMap.containsKey("0")){
-                            ServerUtils.channelMap.get("0").writeAndFlush(line);
+                        if(ServerUtils.channelMap.containsKey("1")){
+                            ServerUtils.channelMap.get("1").writeAndFlush(line);
                         }
                     }
                 }
@@ -56,8 +55,8 @@ public class ClientA {
 
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            System.out.println("开始群聊！"+0+"进入！");
-            ServerUtils.channelMap.put("0",ctx.channel());
+            System.out.println("开始群聊！"+1+"进入！");
+            ServerUtils.channelMap.put("1",ctx.channel());
         }
 
         @Override
